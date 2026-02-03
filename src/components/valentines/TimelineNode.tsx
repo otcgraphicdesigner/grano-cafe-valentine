@@ -1,12 +1,16 @@
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-import { Snowflake, Heart, Flame, Check } from 'lucide-react';
-import { GameDeck } from './GameDeck';
-import type { TimelineHour } from '@/data/mockData';
+"use client";
+
+import { useEffect, useRef } from "react";
+import { Snowflake, Heart, Flame, Check } from "lucide-react";
+import type { TimelineHour } from "@/data/mockData";
+import { GameDeck } from "./GameDeck";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface TimelineNodeProps {
   hour: TimelineHour;
-  isLast?: boolean;
 }
 
 const iconMap = {
@@ -15,110 +19,96 @@ const iconMap = {
   flame: Flame,
 };
 
-export const TimelineNode = ({ hour, isLast = false }: TimelineNodeProps) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+export const TimelineNode = ({ hour }: TimelineNodeProps) => {
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const Icon = iconMap[hour.icon];
 
+  useEffect(() => {
+    if (!sectionRef.current || !contentRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        contentRef.current,
+        { y: 120, opacity: 0 },
+        {
+          y: -120,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "+=100%",
+            scrub: true,
+            pin: true,
+            pinSpacing: true,
+          },
+        },
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div ref={ref} className="relative flex gap-8 md:gap-16">
-      {/* Timeline line and node */}
-      <div className="flex flex-col items-center">
-        {/* Node */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={isInView ? { scale: 1 } : { scale: 0 }}
-          transition={{ duration: 0.5, type: 'spring' }}
-          className="relative z-10 w-16 h-16 rounded-full bg-background border-2 border-primary flex items-center justify-center neon-glow"
-        >
-          <Icon className="w-7 h-7 text-primary" />
-          
-          {/* Hour indicator */}
-          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
-            {hour.id}
+    <section ref={sectionRef} className="relative">
+      <div ref={contentRef} className="flex gap-6 md:gap-12 py-24">
+        {/* TIMELINE */}
+        <div className="flex flex-col items-center">
+          <div className="relative z-10 w-16 h-16 rounded-full bg-background border-2 border-primary flex items-center justify-center neon-glow">
+            <Icon className="w-7 h-7 text-primary" />
+            <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+              {hour.id}
+            </span>
           </div>
-        </motion.div>
-        
-        {/* Connecting line */}
-        {!isLast && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={isInView ? { height: '100%' } : { height: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="w-0.5 timeline-thread flex-1 min-h-[200px]"
-          />
-        )}
-      </div>
-
-      {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, x: 30 }}
-        animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="flex-1 pb-16"
-      >
-        {/* Phase badge */}
-        <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 mb-4">
-          <span className="text-sm font-medium text-primary">{hour.phase}</span>
         </div>
-        
-        {/* Title */}
-        <h3 className="font-display text-3xl md:text-4xl text-foreground mb-3">
-          Hour {hour.id}: {hour.title}
-        </h3>
-        
-        {/* Description */}
-        <p className="text-muted-foreground text-lg leading-relaxed mb-6 max-w-xl">
-          {hour.description}
-        </p>
-        
-        {/* Activities */}
-        <div className="space-y-2 mb-8">
-          {hour.activities.map((activity, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-              transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-              className="flex items-center gap-3"
-            >
-              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                <Check className="w-3 h-3 text-primary" />
-              </div>
-              <span className="text-foreground/80">{activity}</span>
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Games */}
-        {hour.games.length > 0 && (
-          <GameDeck games={hour.games} title="Featured Games" />
-        )}
 
-        {/* Special content for final hour */}
-        {hour.id === 3 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="mt-8 p-6 rounded-2xl glass border border-primary/20"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-neon flex items-center justify-center">
-                <span className="text-2xl">📸</span>
+        {/* CONTENT */}
+        <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            {/* LEFT */}
+            <div>
+              <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 mb-4">
+                <span className="text-sm font-medium text-primary">
+                  {hour.phase}
+                </span>
               </div>
-              <div>
-                <h4 className="font-display text-xl text-foreground mb-1">
-                  Polaroid Goodbye
-                </h4>
-                <p className="text-muted-foreground">
-                  Capture your moment at the Love Affair Corner
-                </p>
+
+              <h3 className="font-display text-3xl md:text-4xl mb-3">
+                Hour {hour.id}: {hour.title}
+              </h3>
+
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6 max-w-xl">
+                {hour.description}
+              </p>
+
+              <div className="space-y-3 mb-8">
+                {hour.activities.map((activity, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-primary" />
+                    </span>
+                    <span className="text-foreground/80">{activity}</span>
+                  </div>
+                ))}
               </div>
+
+              {hour.games.length > 0 && (
+                <span className="text-xs tracking-widest text-primary uppercase">
+                  Featured Games
+                </span>
+              )}
             </div>
-          </motion.div>
-        )}
-      </motion.div>
-    </div>
+
+            {/* RIGHT */}
+            {hour.games.length > 0 && (
+              <div className="flex justify-center md:justify-end">
+                <GameDeck title={hour.title} games={hour.games} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
