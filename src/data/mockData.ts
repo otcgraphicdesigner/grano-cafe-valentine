@@ -1,5 +1,4 @@
-// Slow Love Club - Event Data
-
+// src\data\mockData.ts
 export interface GameQuestion {
   id: string;
   question: string;
@@ -14,6 +13,7 @@ export interface TimelineHour {
   activities: string[];
   games: GameInfo[];
   icon: 'ice' | 'heart' | 'flame';
+  bgImage: string;
 }
 
 export interface GameInfo {
@@ -99,6 +99,7 @@ export const timelineHours: TimelineHour[] = [
     activities: ['Welcome drinks & arrival', 'Icebreaker games', 'First course tasting'],
     games: [games.howWellDoYouKnowMe, games.slowQuestions],
     icon: 'ice',
+    bgImage: '/1.png',
   },
   {
     id: 2,
@@ -108,7 +109,9 @@ export const timelineHours: TimelineHour[] = [
     activities: ['Sensory experiences', 'Creative expression', 'Curated pairings'],
     games: [games.sipAndGuess, games.loveIllustrated],
     icon: 'heart',
+    bgImage: '/2.avif',
   },
+
   {
     id: 3,
     title: 'The Seal',
@@ -117,6 +120,7 @@ export const timelineHours: TimelineHour[] = [
     activities: ['"The Last Bite" ritual', 'Love Affair Corner', 'Polaroid goodbye'],
     games: [],
     icon: 'flame',
+    bgImage: '/3.avif',
   },
 ];
 

@@ -256,3 +256,77 @@
     background-position: -10px center;
   }
 }
+/* ===== 21st-style Shining Text ===== */
+.shine-text {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.shine-text > .shine-base {
+  position: relative;
+  z-index: 2;
+}
+
+.shine-text::after {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  z-index: 3;
+  pointer-events: none;
+
+  /* The actual shine (wide soft + sharp core) */
+  background:
+    linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(255,255,255,0.00) 42%,
+      rgba(255,255,255,0.55) 50%,
+      rgba(255,255,255,0.00) 58%,
+      transparent 100%
+    );
+
+  /* MASK: shows the shine only inside the text */
+  -webkit-mask-image: var(--shine-mask);
+  mask-image: var(--shine-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+
+  transform: translateX(-140%);
+  animation: shineSweep 2.2s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.95;
+  filter: blur(0.2px);
+}
+
+@keyframes shineSweep {
+  0%   { transform: translateX(-140%); }
+  100% { transform: translateX(140%); }
+}
+
+/* Optional: subtle ambient glow */
+.shine-text::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  -webkit-mask-image: var(--shine-mask);
+  mask-image: var(--shine-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+
+  background: radial-gradient(circle at 35% 45%, rgba(255, 255, 255, 0.16), transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0.65;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .shine-text::after { animation: none; transform: translateX(0); opacity: 0.35; }
+}
