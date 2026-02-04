@@ -30,7 +30,7 @@ export const HeroSection = () => {
       </motion.div>
 
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto text-white">
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto text-white mt-24 md:mt-6">
 
         {/* Event badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/40 mb-8 backdrop-blur-sm">
@@ -109,7 +109,7 @@ export const HeroSection = () => {
         {/* CTA */}
         <button
           onClick={scrollToBooking}
-          className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-neon text-primary-foreground font-semibold text-lg rounded-full"
+          className="inline-flex items-center gap-3 px-10 py-5 -mt-5 md:-mt-0 bg-gradient-neon text-primary-foreground font-semibold text-lg rounded-full"
         >
           <span>Reserve Your Table</span>
           <span className="font-display text-xl">
