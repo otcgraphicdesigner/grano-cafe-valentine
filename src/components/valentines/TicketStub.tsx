@@ -361,7 +361,7 @@ export const TicketStub = () => {
                       >
                         <option value="12-3pm">12:00 PM–3:00 PM</option>
                         <option value="4-7pm">4:00 PM–7:00 PM</option>
-                        <option value="after 10pm">After 10 PM</option>
+                        {/* <option value="after 10pm">After 10 PM</option> */}
                       </select>
                     </div>
 
