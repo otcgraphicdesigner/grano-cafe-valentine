@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion';
-import { GameCard } from './GameCard';
-import type { GameInfo } from '@/data/mockData';
+// src\components\valentines\GameDeck.tsx
+import { motion } from "framer-motion";
+import { GameCard } from "./GameCard";
+import type { GameInfo } from "@/data/mockData";
 
 interface GameDeckProps {
   games: GameInfo[];
@@ -20,7 +21,7 @@ export const GameDeck = ({ games, title }: GameDeckProps) => {
       <h4 className="text-sm uppercase tracking-widest text-primary mb-6 font-medium">
         {title}
       </h4>
-      
+
       <div className="flex justify-center items-end gap-[-20px] relative">
         {/* Deck stack effect */}
         <div className="relative flex">
@@ -29,7 +30,7 @@ export const GameDeck = ({ games, title }: GameDeckProps) => {
               key={game.id}
               className="relative"
               style={{
-                marginLeft: index > 0 ? '-60px' : '0',
+                marginLeft: index > 0 ? "-60px" : "0",
                 zIndex: index,
               }}
             >
@@ -38,7 +39,7 @@ export const GameDeck = ({ games, title }: GameDeckProps) => {
           ))}
         </div>
       </div>
-      
+
       <p className="text-center text-muted-foreground text-sm mt-6 italic">
         Tap a card to reveal a sample question
       </p>
