@@ -1,17 +1,29 @@
 import { Heart, Clock, MapPin } from 'lucide-react';
 import { eventDetails } from '@/data/mockData';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 
 export const HeroSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+
   const scrollToBooking = () => {
     document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      
-      {/* ===== Background Video ===== */}
-      <div className="absolute inset-0 z-0">
-        {/* Desktop Video */}
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+    >
+      {/* Background video parallax */}
+      <motion.div style={{ y }} className="absolute inset-0 z-0">
         <video
           className="hidden md:block w-full h-full object-cover"
           src="/desk.mp4"
@@ -20,8 +32,6 @@ export const HeroSection = () => {
           loop
           playsInline
         />
-
-        {/* Mobile Video */}
         <video
           className="block md:hidden w-full h-full object-cover"
           src="/mob.mp4"
@@ -30,19 +40,17 @@ export const HeroSection = () => {
           loop
           playsInline
         />
-
-        {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-black/65" />
-      </div>
+      </motion.div>
 
-      {/* ===== Content ===== */}
-      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white">
-        
-        {/* Badge */}
+      {/* Content */}
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto text-white mt-10 sm:mt-10 md:mt-0">
+
+        {/* Event badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/40 mb-8 backdrop-blur-sm">
           <Heart className="w-4 h-4 text-primary" fill="currentColor" />
           <span className="text-primary text-sm font-medium tracking-wide">
-            {eventDetails.venue}
+            {eventDetails.eventName}
           </span>
         </div>
 
@@ -62,19 +70,61 @@ export const HeroSection = () => {
           {eventDetails.tagline}
         </p>
 
-        {/* Event Details */}
-        <div className="flex flex-wrap items-center justify-center gap-6 mb-10 text-white/80">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            <span>{eventDetails.time}</span>
+        {/* Slots + Map layout */}
+        <div className="mb-10 text-white/80">
+
+          {/* Mobile layout (stacked) */}
+          <div className="flex flex-col items-center gap-4 md:hidden">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              <span>{eventDetails.eventSlots[0]}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              <span>{eventDetails.eventSlots[1]}</span>
+            </div>
+            <a
+              href="https://maps.app.goo.gl/HZ2FPUNYcSn7UPYj9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-primary transition-colors"
+            >
+              <MapPin className="w-5 h-5 text-primary" />
+              <span>{eventDetails.venue}</span>
+            </a>
           </div>
 
-          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          {/* Desktop layout */}
+<div className="hidden md:flex justify-center">
+  <div className="flex items-center gap-16">
+    
+    {/* Slots */}
+    <div className="flex flex-col items-start gap-6">
+      <div className="flex items-center gap-2">
+        <Clock className="w-5 h-5 text-primary" />
+        <span>{eventDetails.eventSlots[0]}</span>
+      </div>
 
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-primary" />
-            <span>{eventDetails.venue}</span>
-          </div>
+      <div className="flex items-center gap-2">
+        <Clock className="w-5 h-5 text-primary" />
+        <span>{eventDetails.eventSlots[1]}</span>
+      </div>
+    </div>
+
+    {/* Map */}
+    <a
+      href="https://maps.app.goo.gl/HZ2FPUNYcSn7UPYj9"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 hover:text-primary transition-colors"
+    >
+      <MapPin className="w-5 h-5 text-primary" />
+      <span>{eventDetails.venue}</span>
+    </a>
+
+  </div>
+</div>
+
         </div>
 
         {/* CTA */}
@@ -82,12 +132,11 @@ export const HeroSection = () => {
           onClick={scrollToBooking}
           className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-neon text-primary-foreground font-semibold text-lg rounded-full"
         >
-          <span>Reserve Your Sanctuary</span>
+          <span>Reserve Your Table</span>
           <span className="font-display text-xl">
             {eventDetails.currency}{eventDetails.price.toLocaleString()}
           </span>
         </button>
-
       </div>
     </section>
   );

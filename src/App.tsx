@@ -8,6 +8,8 @@ import Valentines from "./pages/Valentines";
 import NotFound from "./pages/NotFound";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ScrollToTop from "@/components/utils/ScrollToTop";
+
 
 const queryClient = new QueryClient();
 
@@ -17,6 +19,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+       <ScrollToTop />
         <Routes>
           <Route path="/" element={<Navigate to="/valentines" replace />} />
           <Route path="/valentines" element={<Valentines />} />

@@ -1,12 +1,19 @@
+import Footer from '@/components/layouts/Footer';
+import Header from '@/components/layouts/Header';
 import { Lock, Database, Mail, ShieldCheck, Cookie, MapPin } from 'lucide-react';
 
 export default function PrivacyPolicy() {
   return (
-    <main className="relative min-h-screen overflow-hidden velvet-bg">
+    <main className="relative min-h-screen  velvet-bg">
+      <Header />
       {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px]" />
+      {/* <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px]" /> */}
+      <div className="absolute inset-0 -z-10 flex justify-center">
+  <div className="mt-40 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px]" />
+</div>
 
-      <section className="relative z-10 px-4 md:px-8 py-20">
+
+      <section className="relative z-10 px-4 md:px-8 pt-20 pb-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -23,9 +30,9 @@ export default function PrivacyPolicy() {
               This policy explains what we collect, why we collect it, and how we protect it when you use our website and booking flow.
             </p>
 
-            <p className="text-muted-foreground text-sm mt-3">
+            {/* <p className="text-muted-foreground text-sm mt-3">
               Effective Date: <span className="text-foreground/80">[Add Date]</span>
-            </p>
+            </p> */}
           </div>
 
           {/* Content Card */}
@@ -79,8 +86,9 @@ export default function PrivacyPolicy() {
                   3. Where Your Data Is Stored
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Booking records may be stored in internal systems, including secure Google Sheets via protected backend scripts,
-                  accessible only to authorized staff.
+                  Booking records may be stored in internal systems.
+                  {/* including secure Google Sheets via protected backend scripts,
+                  accessible only to authorized staff. */}
                 </p>
               </section>
 
@@ -89,15 +97,27 @@ export default function PrivacyPolicy() {
                 <h2 className="font-display text-2xl md:text-3xl text-foreground">
                   4. Payments & Partners
                 </h2>
+
                 <p className="text-muted-foreground leading-relaxed">
-                  Payment processing is handled by Razorpay. We receive only necessary transaction identifiers (like payment ID/order ID)
-                  to confirm your booking.
+                  Payments are processed securely through Razorpay. The Razorpay merchant account used for
+                  transactions is operated by Outright Creators, our authorized payment processing and
+                  technology partner. As a result, the payment page, receipt, or bank statement may display
+                  the name “Outright Creators”.
                 </p>
+
                 <p className="text-muted-foreground leading-relaxed">
-                  Our payment technology partner, Outright Creators, assists with implementation and technical facilitation for the payment
-                  and confirmation workflow. They do not receive your card/UPI credentials from us.
+                  We receive only limited transaction identifiers from Razorpay (such as payment ID and order ID)
+                  required to verify and confirm your booking. We do not receive or store your card details,
+                  UPI PIN, CVV, or banking credentials.
+                </p>
+
+                <p className="text-muted-foreground leading-relaxed">
+                  Outright Creators facilitates the payment gateway integration and server-side verification
+                  workflow on our behalf. They do not have access to your sensitive payment credentials
+                  through our systems.
                 </p>
               </section>
+
 
               {/* Section 5 */}
               <section className="space-y-3">
@@ -137,21 +157,23 @@ export default function PrivacyPolicy() {
                     <MapPin className="w-5 h-5 text-primary mt-0.5" />
                     <div>
                       <div className="text-foreground/80 font-medium">Location</div>
-                      <div>[City], India</div>
+                      <div>Hyderabad, India</div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <p className="text-xs text-muted-foreground">
+              {/* <p className="text-xs text-muted-foreground">
                 Note: This policy is written to match your site’s booking + payment flow. Replace placeholders with your official contact details.
-              </p>
+              </p> */}
             </div>
           </div>
 
           <div className="h-10" />
         </div>
+<Footer />
       </section>
+  
     </main>
   );
 }

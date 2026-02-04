@@ -1,4 +1,4 @@
-// D:\grano\landing\grano-cafe\src\components\valentines\TicketStub.tsx
+// grano-cafe\src\components\valentines\TicketStub.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Check, Sparkles } from 'lucide-react';
@@ -15,6 +15,7 @@ interface BookingForm {
   partnerName: string;
   email: string;
   phone: string;
+  slot: string;
 }
 
 type CreateOrderResponse = {
@@ -37,6 +38,7 @@ export const TicketStub = () => {
     partnerName: '',
     email: '',
     phone: '',
+    slot: '12:00 PM-3:00 PM',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -65,7 +67,7 @@ export const TicketStub = () => {
     document.body.appendChild(script);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -93,7 +95,7 @@ export const TicketStub = () => {
         order_id: opts.orderId,
         amount: opts.amount,
         currency: opts.currency,
-        name: eventDetails.name,
+        name: eventDetails.brandName,
         description: eventDetails.tagline,
         prefill: {
           name: form.name,
@@ -102,7 +104,8 @@ export const TicketStub = () => {
         },
         notes: {
           partnerName: form.partnerName,
-          eventName: eventDetails.name,
+          eventName: eventDetails.eventName,
+          slot: form.slot,
         },
         theme: {
           color: '#E11D48',
@@ -152,11 +155,13 @@ export const TicketStub = () => {
             partnerName: form.partnerName,
             email: form.email,
             phone: form.phone,
+            slot: form.slot,
           },
           meta: {
-            eventName: eventDetails.name,
+            eventName: eventDetails.eventName,
             eventTagline: eventDetails.tagline,
             displayAmount,
+            slot: form.slot,
           },
         }),
       });
@@ -188,11 +193,13 @@ export const TicketStub = () => {
             partnerName: form.partnerName,
             email: form.email,
             phone: form.phone,
+            slot: form.slot,
           },
           meta: {
-            eventName: eventDetails.name,
+            eventName: eventDetails.eventName,
             eventTagline: eventDetails.tagline,
             displayAmount,
+            slot: form.slot,
           },
         }),
       });
@@ -261,7 +268,7 @@ export const TicketStub = () => {
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-primary/20">
                 <div>
                   <h3 className="font-display text-2xl text-foreground mb-1">
-                    {eventDetails.name}
+                    {eventDetails.eventName}
                   </h3>
                   <p className="text-muted-foreground italic">
                     {eventDetails.tagline}
@@ -338,6 +345,24 @@ export const TicketStub = () => {
                           placeholder="Enter partner's name"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="slot" className="block text-sm text-muted-foreground mb-2">
+                        Select Your Slot
+                      </label>
+                      <select
+                        id="slot"
+                        name="slot"
+                        required
+                        value={form.slot}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
+                      >
+                        <option value="12-3pm">12:00 PM–3:00 PM</option>
+                        <option value="4-7pm">4:00 PM–7:00 PM</option>
+                        <option value="after 10pm">After 10 PM</option>
+                      </select>
                     </div>
 
                     <div>
@@ -427,6 +452,9 @@ export const TicketStub = () => {
                         {form.name} ♥ {form.partnerName}
                       </span>
                     </div>
+                    <p className="text-muted-foreground text-sm mt-4">
+                      Slot: <span className="text-foreground/80 font-medium">{form.slot}</span>
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>

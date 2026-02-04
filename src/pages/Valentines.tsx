@@ -5,34 +5,14 @@ import { TicketStub } from '@/components/valentines/TicketStub';
 import { eventDetails } from '@/data/mockData';
 import { Heart, Instagram, Mail } from 'lucide-react';
 import { Timelineo } from '@/components/valentines/Timelineo';
+import Footer from '@/components/layouts/Footer';
+import Header from '@/components/layouts/Header';
 
 const Valentines = () => {
   return (
     <div className="min-h-screen bg-background text-foreground valentine-scroll">
       {/* Floating nav */}
-      <motion.nav
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-         <div className="flex items-center">
-  <img
-    src="/grano-logo.png"
-    alt="Grano Cafe Logo"
-    className="h-16 w-auto object-contain"
-  />
-</div>
-
-          
-          <div className="glass rounded-full px-6 py-2">
-            <span className="text-sm text-muted-foreground">
-              {eventDetails.date} • {eventDetails.time}
-            </span>
-          </div>
-        </div>
-      </motion.nav>
+      <Header />
 
       {/* Hero */}
       <HeroSection />
@@ -47,7 +27,7 @@ const Valentines = () => {
 
       {/* Timeline */}
       <Timeline />
-      <Timelineo />
+      {/* <Timelineo /> */}
 
       {/* Booking Section */}
       <div id="booking">
@@ -55,67 +35,8 @@ const Valentines = () => {
       </div>
 
       {/* Footer */}
-      <footer className="relative py-16 px-4 border-t border-primary/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-8"
-          >
-            <h3 className="font-display text-3xl text-foreground mb-2">
-              {eventDetails.name}
-            </h3>
-            <p className="text-muted-foreground italic">
-              {eventDetails.tagline}
-            </p>
-          </motion.div>
+      <Footer />
 
-          {/* Social links */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <a
-              href="https://www.instagram.com/granohyd/"
-              className="w-12 h-12 rounded-full glass flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-            {/* <a
-              href="#"
-              className="w-12 h-12 rounded-full glass flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-            >
-              <Mail className="w-5 h-5" />
-            </a> */}
-          </div>
-
-          {/* Venue info */}
-          <div className="text-sm text-muted-foreground">
-            <p>{eventDetails.venue}</p>
-            <p className="mt-1">© 2026 All rights reserved</p>
-          </div>
-
-          {/* Decorative hearts */}
-          <motion.div
-            animate={{ 
-              y: [0, -10, 0],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute bottom-4 right-8 text-primary/20"
-          >
-            <Heart className="w-8 h-8" fill="currentColor" />
-          </motion.div>
-          <motion.div
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [0, -5, 5, 0]
-            }}
-            transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
-            className="absolute bottom-12 right-16 text-primary/10"
-          >
-            <Heart className="w-5 h-5" fill="currentColor" />
-          </motion.div>
-        </div>
-      </footer>
     </div>
   );
 };

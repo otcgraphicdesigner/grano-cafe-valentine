@@ -1,12 +1,15 @@
+import Footer from '@/components/layouts/Footer';
+import Header from '@/components/layouts/Header';
 import { HeartHandshake, ShieldCheck, ScrollText, Mail, MapPin } from 'lucide-react';
 
 export default function TermsAndConditions() {
   return (
     <main className="relative min-h-screen overflow-hidden velvet-bg">
+      <Header />
       {/* Ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px]" />
 
-      <section className="relative z-10 px-4 md:px-8 py-20">
+      <section className="relative z-10 px-4 md:px-8 pt-20 pb-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -50,20 +53,30 @@ export default function TermsAndConditions() {
               </section>
 
               {/* Section 2 */}
-              <section className="space-y-3">
-                <h2 className="font-display text-2xl md:text-3xl text-foreground flex items-center gap-3">
-                  <ShieldCheck className="w-6 h-6 text-primary" />
-                  2. Pricing, Payments & Verification
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Prices are listed in INR unless stated otherwise. Payments are processed via Razorpay (payment processor).
-                  Payment setup, integration, and technical facilitation are supported by our payment technology partner.
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  We do not store your card, UPI PIN, or banking credentials. Your booking is considered valid only after:
-                  (a) payment success, (b) server-side verification, and (c) confirmation issued.
-                </p>
-              </section>
+             <section className="space-y-3">
+  <h2 className="font-display text-2xl md:text-3xl text-foreground flex items-center gap-3">
+    <ShieldCheck className="w-6 h-6 text-primary" />
+    2. Pricing, Payments & Verification
+  </h2>
+
+  <p className="text-muted-foreground leading-relaxed">
+    Prices are listed in INR unless stated otherwise. Payments are processed securely via Razorpay. 
+    The Razorpay merchant account used for processing payments is operated by Outright Creators, 
+    our authorized payment technology and processing partner.
+  </p>
+
+  <p className="text-muted-foreground leading-relaxed">
+    Outright Creators facilitates payment collection, gateway integration, and technical verification 
+    on our behalf. This is why the payment page, receipt, or bank statement may display the name 
+    “Outright Creators”.
+  </p>
+
+  <p className="text-muted-foreground leading-relaxed">
+    We do not store your card details, UPI PIN, or banking credentials. Your booking is considered 
+    valid only after: (a) successful payment, (b) server-side verification, and (c) confirmation issued.
+  </p>
+</section>
+
 
               {/* Section 3 */}
               <section className="space-y-3">
@@ -153,22 +166,24 @@ export default function TermsAndConditions() {
                     <MapPin className="w-5 h-5 text-primary mt-0.5" />
                     <div>
                       <div className="text-foreground/80 font-medium">Location</div>
-                      <div>[City], India</div>
+                      <div>Hyderabad, India</div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <p className="text-xs text-muted-foreground">
+              {/* <p className="text-xs text-muted-foreground">
                 Note: This page is a template to match your theme. If you have a registered business/legal entity name,
                 replace “Grano Cafe” with the legal name where required.
-              </p>
+              </p> */}
             </div>
           </div>
 
           {/* Bottom spacing */}
           <div className="h-10" />
         </div>
+         {/* Footer */}
+      <Footer />
       </section>
     </main>
   );

@@ -122,13 +122,15 @@ export const timelineHours: TimelineHour[] = [
 
 // Event Details
 export const eventDetails = {
-  name: 'Grano Cafe',
+  brandName: 'Grano – Coffee Affairs',
+  eventName: 'Slow Love by Grano',
   tagline: 'Love, but at an unhurried pace',
-  venue: 'Grano - Coffee Affairs',
-  date: "Valentine's Day 2026",
-  time: '7:00 PM - 10:00 PM',
+  venue: 'Grano – Coffee Affairs',
+  date: '14th Feb 2026',
+  cafeTimings: '10:00 AM – 01:00 AM',
+  eventSlots: ['12:00 PM – 03:00 PM', '04:00 PM – 07:00 PM'],
   duration: '3 Hours',
-  price: 5000,
+  price: 1000,
   currency: '₹',
   includes: [
     'Welcome drinks',
@@ -136,6 +138,7 @@ export const eventDetails = {
     'Multi-course tasting experience',
     'Signature dessert ritual',
     'Polaroid takeaway',
-    'Exclusive couple\'s sanctuary seating',
+    "Exclusive couple's sanctuary seating",
   ],
 };
+
