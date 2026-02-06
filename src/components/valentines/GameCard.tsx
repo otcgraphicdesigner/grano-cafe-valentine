@@ -1,4 +1,4 @@
-// src\components\valentines\GameCard.tsx
+// src/components/valentines/GameCard.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Wine, Palette, Heart } from "lucide-react";
@@ -6,7 +6,8 @@ import type { GameInfo } from "@/data/mockData";
 
 interface GameCardProps {
   game: GameInfo;
-  index: number;
+  index: number;      // card index (0 or 1)
+  stepIndex: number;  // which game/step (0,1,2)
 }
 
 const iconMap = {
@@ -18,24 +19,25 @@ const iconMap = {
   sparkles: Heart,
 };
 
-// You can later move these to a constants file or theme
+// 6 images in order
 const subtleBackgrounds = [
-  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=800", // soft pink hearts bokeh
-  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=800", // romantic warm tones
-  // "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=800", // gentle rose petals vibe
-  // Optional: add 1–2 more subtle ones
+  "/j1.png",
+  "/j2.png",
+  "/j3.png",
+  "/j4.png",
+  "/j5.png",
+  "/j6.png",
 ];
 
-export const GameCard = ({ game, index }: GameCardProps) => {
+export const GameCard = ({ game, index, stepIndex }: GameCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const Icon = iconMap[game.icon];
 
-  // Get a random question to show on the back
   const sampleQuestion =
     game.questions[Math.floor(Math.random() * game.questions.length)];
 
-  // Optional: you can make background deterministic per game or per index
-  const bgImage = subtleBackgrounds[index % subtleBackgrounds.length];
+  // ✅ Exact mapping rule
+  const bgImage = subtleBackgrounds[stepIndex * 2 + index];
 
   return (
     <motion.div
@@ -48,9 +50,11 @@ export const GameCard = ({ game, index }: GameCardProps) => {
       onClick={() => setIsFlipped(!isFlipped)}
     >
       <div
-        className={`flip-card-inner relative w-full h-full ${isFlipped ? "flipped" : ""}`}
+        className={`flip-card-inner relative w-full h-full ${
+          isFlipped ? "flipped" : ""
+        }`}
       >
-        {/* Front of card – now with background image */}
+        {/* FRONT */}
         <div
           className="flip-card-front absolute inset-0 rounded-2xl border border-primary/30 p-6 flex flex-col items-center justify-center text-center glass overflow-hidden"
           style={{
@@ -60,11 +64,9 @@ export const GameCard = ({ game, index }: GameCardProps) => {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* Semi-transparent overlay to keep text readable */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/70 via-primary/50 to-accent/40" />
-
-          {/* Card pattern overlay – kept for style */}
           <div className="absolute inset-4 border border-primary/20 rounded-xl" />
+
           <div className="absolute top-4 left-4 text-primary text-lg font-display opacity-80">
             ♥
           </div>
@@ -85,10 +87,9 @@ export const GameCard = ({ game, index }: GameCardProps) => {
           </div>
         </div>
 
-        {/* Back of card – remains unchanged */}
+        {/* BACK */}
         <div className="flip-card-back absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-accent p-6 flex flex-col items-center justify-center text-center">
           <div className="absolute inset-2 border-2 border-foreground/20 rounded-xl" />
-
           <div className="relative z-10">
             <p className="font-display text-xl text-foreground leading-relaxed italic mb-4">
               "{sampleQuestion.question}"

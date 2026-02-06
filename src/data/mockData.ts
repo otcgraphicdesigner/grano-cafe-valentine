@@ -152,12 +152,20 @@ export const eventDetails = {
   eventName: 'Slow Love by Grano',
   tagline: 'Love, but at an unhurried pace',
   venue: 'Grano – Coffee Affairs',
+  tableType: "Exclusive Couple's Table Seating",
   date: '14th Feb 2026',
   cafeTimings: '10:00 AM – 01:00 AM',
   eventSlots: ['12:00 PM – 03:00 PM', '04:00 PM – 07:00 PM'],
   duration: '3 Hours',
+  // ✅ Payments (₹)
+  partialAmount: 1000,
+  fullAmount: 3669,
+  // (keeping old fields for compatibility if used elsewhere)
   price: 1000,
+  eventPrice: 3669,
   currency: '₹',
+  // ✅ Slot capacity
+  slotCapacity: 20,
   includes: [
     'Welcome drinks',
     'Curated games & activities',
@@ -167,4 +175,5 @@ export const eventDetails = {
     "Exclusive couple's table seating",
   ],
 };
+;
 
