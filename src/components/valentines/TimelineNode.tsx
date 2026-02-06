@@ -73,8 +73,13 @@ export const TimelineNode = ({ hour }: TimelineNodeProps) => {
             {/* Scale down the deck on mobile to ensure it fits */}
             <div className="scale-[0.85] md:scale-100 transform-gpu">
               {hour.games.length > 0 && (
-                <GameDeck title={hour.title} games={hour.games} />
-              )}
+  <GameDeck
+    title={hour.title}
+    games={hour.games}
+    stepIndex={hour.id - 1} // 👈 IMPORTANT
+  />
+)}
+
             </div>
           </div>
         </div>

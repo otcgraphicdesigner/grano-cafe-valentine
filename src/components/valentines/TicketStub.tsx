@@ -1,7 +1,7 @@
 // grano-cafe\src\components\valentines\TicketStub.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Check, Sparkles } from 'lucide-react';
+import { Heart, Check, Sparkles, XCircle } from 'lucide-react';
 import { eventDetails } from '@/data/mockData';
 
 declare global {
@@ -18,12 +18,38 @@ interface BookingForm {
   slot: string;
 }
 
+type PaymentType = 'partial' | 'full';
+
+type SlotInfo = {
+  capacity: number;
+  confirmed: number;
+  holds: number;
+  total: number;
+  remaining: number;
+  isFull: boolean;
+};
+
+type SlotStatusResponse = {
+  ok: boolean;
+  capacity: number;
+  slots: Record<string, SlotInfo>;
+  error?: string;
+};
+
 type CreateOrderResponse = {
   ok: boolean;
   keyId: string;
   orderId: string;
-  amount: number;
-  currency: string;
+  amount: number; // paise (Razorpay needs paise)
+  currency: string; // INR
+  holdRow: number;
+
+  // helpful meta
+  amountPaidRupees: number;
+  amountPaidDisplay: string;
+  paymentType: PaymentType;
+  slot: string;
+
   error?: string;
 };
 
@@ -33,23 +59,83 @@ type VerifyResponse = {
 };
 
 export const TicketStub = () => {
+  const partialRupees = eventDetails.partialAmount ?? eventDetails.price ?? 1000;
+  const fullRupees = eventDetails.fullAmount ?? eventDetails.eventPrice ?? partialRupees;
+  const currencySymbol = eventDetails.currency || '₹';
+
+  const formatINR = (n: number) => `${currencySymbol}${n.toLocaleString('en-IN')}`;
+
   const [form, setForm] = useState<BookingForm>({
     name: '',
     partnerName: '',
     email: '',
     phone: '',
-    slot: '12:00 PM-3:00 PM',
+    slot: eventDetails.eventSlots?.[0] || '12:00 PM – 03:00 PM',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ Track which button is processing
+  const [submittingType, setSubmittingType] = useState<PaymentType | null>(null);
+  const isSubmitting = submittingType !== null;
+
   const [isSuccess, setIsSuccess] = useState(false);
   const [rzpReady, setRzpReady] = useState(false);
 
-  const amountPaise = useMemo(() => {
-    const price = Number(eventDetails.price || 0);
-    return Math.round(price * 100);
-  }, []);
+  // ✅ Slot capacity state
+  const [slotStatus, setSlotStatus] = useState<SlotStatusResponse | null>(null);
 
-  const displayAmount = `${eventDetails.currency}${eventDetails.price.toLocaleString()}`;
+  // ✅ Toast
+  const [toast, setToast] = useState<{ open: boolean; message: string }>(() => ({
+    open: false,
+    message: '',
+  }));
+  const toastTimerRef = useRef<number | null>(null);
+
+  const showToast = (message: string) => {
+    setToast({ open: true, message });
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast({ open: false, message: '' }), 3500);
+  };
+
+  const displayFullAmount = useMemo(() => formatINR(fullRupees), [fullRupees]);
+  const displayPartialAmount = useMemo(() => formatINR(partialRupees), [partialRupees]);
+
+  const fetchSlotStatus = async () => {
+    try {
+      const res = await fetch('/api/slot-status.php', { method: 'GET' });
+      const data = (await res.json()) as SlotStatusResponse;
+
+      if (!res.ok || !data?.ok) {
+        setSlotStatus(null);
+        return;
+      }
+
+      setSlotStatus(data);
+
+      // If selected slot becomes full, auto-switch to available
+      const current = form.slot;
+      const currentInfo = data.slots?.[current];
+      const isCurrentFull = currentInfo?.isFull === true;
+
+      if (isCurrentFull) {
+        const other = (eventDetails.eventSlots || []).find(s => !data.slots?.[s]?.isFull);
+        if (other) {
+          setForm(prev => ({ ...prev, slot: other }));
+          showToast('Selected slot is full. Switched you to the available slot.');
+        } else {
+          showToast('All slots are full. Please contact us to check availability.');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchSlotStatus();
+    const t = window.setInterval(fetchSlotStatus, 15000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const existing = document.querySelector<HTMLScriptElement>('script[data-razorpay="checkout"]');
@@ -67,10 +153,25 @@ export const TicketStub = () => {
     document.body.appendChild(script);
   }, []);
 
+  const isSlotFull = (slot: string) => !!slotStatus?.slots?.[slot]?.isFull;
+
+  const allSlotsFull = useMemo(() => {
+    const slots = eventDetails.eventSlots || [];
+    if (!slots.length) return false;
+    return slots.every(s => slotStatus?.slots?.[s]?.isFull);
+  }, [slotStatus]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+
+    if (name === 'slot' && isSlotFull(value)) {
+      showToast('This slot is full. Please choose the other slot or contact us.');
+      return;
+    }
+
     setForm(prev => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
@@ -93,7 +194,7 @@ export const TicketStub = () => {
       const options = {
         key: opts.keyId,
         order_id: opts.orderId,
-        amount: opts.amount,
+        amount: opts.amount, // ✅ comes from backend based on button clicked
         currency: opts.currency,
         name: eventDetails.brandName,
         description: eventDetails.tagline,
@@ -132,41 +233,74 @@ export const TicketStub = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
+    if (!form.name.trim()) return 'Please enter your name.';
+    if (!form.partnerName.trim()) return "Please enter partner's name.";
+    if (!form.slot.trim()) return 'Please select a slot.';
+    if (!form.email.trim()) return 'Please enter email address.';
+    if (!form.phone.trim()) return 'Please enter phone number.';
+    return '';
+  };
 
-    if (!rzpReady) {
-      alert('Payment system is loading. Please try again in a moment.');
+  const handlePay = async (paymentType: PaymentType) => {
+    if (isSubmitting) return;
+
+    const msg = validateForm();
+    if (msg) {
+      showToast(msg);
       return;
     }
 
-    setIsSubmitting(true);
+    if (!rzpReady) {
+      showToast('Payment system is loading. Please try again in a moment.');
+      return;
+    }
+
+    if (allSlotsFull) {
+      showToast('All slots are full. Please contact us to check availability.');
+      return;
+    }
+
+    if (isSlotFull(form.slot)) {
+      const other = (eventDetails.eventSlots || []).find(s => !isSlotFull(s));
+      showToast(
+        other
+          ? 'This slot is full. Please choose the other slot.'
+          : 'All slots are full. Please contact us to check availability.'
+      );
+      if (other) setForm(prev => ({ ...prev, slot: other }));
+      return;
+    }
+
+    setSubmittingType(paymentType);
 
     try {
-      // 1) Create order using PHP backend
+      // 1) Create order (backend enforces capacity + correct amount)
       const orderRes = await fetch('/api/create-order.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amountPaise,
-          currency: 'INR',
+          paymentType,
+          slot: form.slot,
           customer: {
             name: form.name,
             partnerName: form.partnerName,
             email: form.email,
             phone: form.phone,
-            slot: form.slot,
           },
           meta: {
             eventName: eventDetails.eventName,
             eventTagline: eventDetails.tagline,
-            displayAmount,
-            slot: form.slot,
+            eventDate: eventDetails.date,
+            tableType: eventDetails.tableType,
           },
         }),
       });
 
       const orderData = (await orderRes.json()) as CreateOrderResponse;
+
+      // refresh slot status after any order attempt
+      fetchSlotStatus();
 
       if (!orderRes.ok || !orderData?.ok) {
         throw new Error(orderData?.error || 'Failed to create order');
@@ -180,14 +314,15 @@ export const TicketStub = () => {
         currency: orderData.currency,
       });
 
-      // 3) Verify signature via PHP + write to Google Sheet + send email
+      // 3) Verify + write sheet + send email
       const verifyRes = await fetch('/api/verify-payment.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...paymentResult,
-          amount: orderData.amount,
-          currency: orderData.currency,
+          holdRow: orderData.holdRow,
+          paymentType: orderData.paymentType,
+          slot: orderData.slot,
           form: {
             name: form.name,
             partnerName: form.partnerName,
@@ -198,8 +333,9 @@ export const TicketStub = () => {
           meta: {
             eventName: eventDetails.eventName,
             eventTagline: eventDetails.tagline,
-            displayAmount,
-            slot: form.slot,
+            eventDate: eventDetails.date,
+            tableType: eventDetails.tableType,
+            amountPaidDisplay: orderData.amountPaidDisplay,
           },
         }),
       });
@@ -211,15 +347,35 @@ export const TicketStub = () => {
       }
 
       setIsSuccess(true);
+      showToast('Booking confirmed! Check your email for confirmation.');
+      fetchSlotStatus();
     } catch (err: any) {
-      alert(err?.message || 'Something went wrong. Please try again.');
+      showToast(err?.message || 'Something went wrong. Please try again.');
+      fetchSlotStatus();
     } finally {
-      setIsSubmitting(false);
+      setSubmittingType(null);
     }
   };
 
   return (
     <section className="relative py-24 px-4 md:px-8 overflow-hidden velvet-bg">
+      {/* ✅ Toast */}
+      <AnimatePresence>
+        {toast.open ? (
+          <motion.div
+            initial={{ opacity: 0, y: -18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999]"
+          >
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-primary/30 bg-black/80 backdrop-blur text-foreground shadow-xl">
+              <XCircle className="w-5 h-5 text-primary" />
+              <span className="text-sm">{toast.message}</span>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       {/* Ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]" />
 
@@ -243,7 +399,7 @@ export const TicketStub = () => {
           </p>
         </motion.div>
 
-        {/* Golden Ticket */}
+        {/* Ticket */}
         <motion.div
           initial={{ opacity: 0, y: 40, rotateX: -10 }}
           whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -251,34 +407,28 @@ export const TicketStub = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
         >
-          {/* Ticket container */}
           <div className="relative bg-gradient-to-br from-[#1a1a1a] via-[#0d0d0d] to-[#000] rounded-3xl overflow-hidden border border-primary/20">
-            {/* Decorative corner patterns */}
             <div className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-primary/30 rounded-tl-3xl" />
             <div className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-primary/30 rounded-tr-3xl" />
             <div className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-primary/30 rounded-bl-3xl" />
             <div className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-primary/30 rounded-br-3xl" />
 
-            {/* Perforated edge */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-32 perforated-edge" />
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-32 perforated-edge rotate-180" />
 
             <div className="p-8 md:p-12">
-              {/* Ticket header */}
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-primary/20">
                 <div>
                   <h3 className="font-display text-2xl text-foreground mb-1">
                     {eventDetails.eventName}
                   </h3>
-                  <p className="text-muted-foreground italic">
-                    {eventDetails.tagline}
-                  </p>
+                  <p className="text-muted-foreground italic">{eventDetails.tagline}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-display text-primary neon-text">
-                    {eventDetails.currency}{eventDetails.price.toLocaleString()}
+                    {displayFullAmount}
                   </div>
-                  <div className="text-sm text-muted-foreground">per couple</div>
+                  <div className="text-sm text-muted-foreground">per couple (full)</div>
                 </div>
               </div>
 
@@ -304,14 +454,12 @@ export const TicketStub = () => {
                 </div>
               </div>
 
-              {/* Form or Success */}
               <AnimatePresence mode="wait">
                 {!isSuccess ? (
-                  <motion.form
+                  <motion.div
                     key="form"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, y: -20 }}
-                    onSubmit={handleSubmit}
                     className="space-y-4"
                   >
                     <div className="grid md:grid-cols-2 gap-4">
@@ -323,7 +471,6 @@ export const TicketStub = () => {
                           type="text"
                           id="name"
                           name="name"
-                          required
                           value={form.name}
                           onChange={handleChange}
                           className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
@@ -338,7 +485,6 @@ export const TicketStub = () => {
                           type="text"
                           id="partnerName"
                           name="partnerName"
-                          required
                           value={form.partnerName}
                           onChange={handleChange}
                           className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
@@ -354,15 +500,31 @@ export const TicketStub = () => {
                       <select
                         id="slot"
                         name="slot"
-                        required
                         value={form.slot}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
+                        disabled={allSlotsFull || isSubmitting}
+                        className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all disabled:opacity-60"
                       >
-                        <option value="12-3pm">12:00 PM–3:00 PM</option>
-                        <option value="4-7pm">4:00 PM–7:00 PM</option>
-                        {/* <option value="after 10pm">After 10 PM</option> */}
+                        {(eventDetails.eventSlots || []).map((s) => {
+                          const info = slotStatus?.slots?.[s];
+                          const full = info?.isFull === true;
+                          const label = info
+                            ? `${s} ${full ? '(FULL)' : `(${info.remaining} left)`}`
+                            : s;
+
+                          return (
+                            <option key={s} value={s} disabled={full}>
+                              {label}
+                            </option>
+                          );
+                        })}
                       </select>
+
+                      {allSlotsFull ? (
+                        <p className="text-sm text-primary mt-2">
+                          All slots are full. Please contact us for availability.
+                        </p>
+                      ) : null}
                     </div>
 
                     <div>
@@ -373,7 +535,6 @@ export const TicketStub = () => {
                         type="email"
                         id="email"
                         name="email"
-                        required
                         value={form.email}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
@@ -389,7 +550,6 @@ export const TicketStub = () => {
                         type="tel"
                         id="phone"
                         name="phone"
-                        required
                         value={form.phone}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-input border border-primary/20 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 inset-shadow transition-all"
@@ -397,35 +557,63 @@ export const TicketStub = () => {
                       />
                     </div>
 
-                    {/* Submit button */}
-                    <motion.button
-                      type="submit"
-                      disabled={isSubmitting || !rzpReady}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full mt-6 py-4 px-8 bg-gradient-neon text-primary-foreground font-semibold rounded-xl heartbeat disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
-                          />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Heart className="w-5 h-5" />
-                          Pay & Book Your Table
-                        </>
-                      )}
-                    </motion.button>
+                    {/* ✅ TWO PAYMENT BUTTONS (only clicked one shows spinner) */}
+                    <div className="grid md:grid-cols-2 gap-4 mt-6">
+                      <motion.button
+                        type="button"
+                        disabled={isSubmitting || !rzpReady || allSlotsFull}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handlePay('partial')}
+                        className="w-full py-4 px-6 bg-gradient-neon text-primary-foreground font-semibold rounded-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-base"
+                      >
+                        {submittingType === 'partial' ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
+                            />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Heart className="w-5 h-5" />
+                            Pay {displayPartialAmount} &amp; Book Table
+                          </>
+                        )}
+                      </motion.button>
+
+                      <motion.button
+                        type="button"
+                        disabled={isSubmitting || !rzpReady || allSlotsFull}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handlePay('full')}
+                        className="w-full py-4 px-6 bg-black/30 border border-primary/30 text-foreground font-semibold rounded-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-base"
+                      >
+                        {submittingType === 'full' ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full"
+                            />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-5 h-5 text-primary" />
+                            Pay Full {displayFullAmount}
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
 
                     <p className="text-center text-sm text-muted-foreground mt-4">
                       Secure payment powered by trusted partners
                     </p>
-                  </motion.form>
+                  </motion.div>
                 ) : (
                   <motion.div
                     key="success"
@@ -441,9 +629,7 @@ export const TicketStub = () => {
                     >
                       <Sparkles className="w-10 h-10 text-primary-foreground" />
                     </motion.div>
-                    <h3 className="font-display text-3xl text-foreground mb-2">
-                      You're In!
-                    </h3>
+                    <h3 className="font-display text-3xl text-foreground mb-2">You're In!</h3>
                     <p className="text-muted-foreground mb-4">
                       Your table is reserved. Check your email for confirmation.
                     </p>

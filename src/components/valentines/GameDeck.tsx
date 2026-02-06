@@ -1,4 +1,4 @@
-// src\components\valentines\GameDeck.tsx
+// src/components/valentines/GameDeck.tsx
 import { motion } from "framer-motion";
 import { GameCard } from "./GameCard";
 import type { GameInfo } from "@/data/mockData";
@@ -6,9 +6,10 @@ import type { GameInfo } from "@/data/mockData";
 interface GameDeckProps {
   games: GameInfo[];
   title: string;
+  stepIndex: number;
 }
 
-export const GameDeck = ({ games, title }: GameDeckProps) => {
+export const GameDeck = ({ games, title, stepIndex }: GameDeckProps) => {
   if (games.length === 0) return null;
 
   return (
@@ -22,8 +23,7 @@ export const GameDeck = ({ games, title }: GameDeckProps) => {
         {title}
       </h4>
 
-      <div className="flex justify-center items-end gap-[-20px] relative">
-        {/* Deck stack effect */}
+      <div className="flex justify-center items-end relative">
         <div className="relative flex">
           {games.map((game, index) => (
             <div
@@ -34,15 +34,15 @@ export const GameDeck = ({ games, title }: GameDeckProps) => {
                 zIndex: index,
               }}
             >
-              <GameCard game={game} index={index} />
+              <GameCard
+                game={game}
+                index={index}
+                stepIndex={stepIndex}
+              />
             </div>
           ))}
         </div>
       </div>
-
-      <p className="text-center text-muted-foreground text-sm mt-6 italic">
-        Tap a card to reveal a sample question
-      </p>
     </motion.div>
   );
 };
